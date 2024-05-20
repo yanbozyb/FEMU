@@ -47,6 +47,8 @@ FEMU_OPTIONS=${FEMU_OPTIONS}",blk_er_lat=${blk_er_lat}"
 FEMU_OPTIONS=${FEMU_OPTIONS}",ch_xfer_lat=${ch_xfer_lat}"
 FEMU_OPTIONS=${FEMU_OPTIONS}",gc_thres_pcent=${gc_thres_pcent}"
 FEMU_OPTIONS=${FEMU_OPTIONS}",gc_thres_pcent_high=${gc_thres_pcent_high}"
+# this is used to use 4KB sector size (lba_index=3)
+FEMU_OPTIONS=${FEMU_OPTIONS}",nlbaf=5,lba_index=3"
 
 echo ${FEMU_OPTIONS}
 
