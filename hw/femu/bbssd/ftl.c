@@ -126,6 +126,7 @@ static void ssd_init_write_pointer(struct ssd *ssd)
 
     /* wpp->curline is always our next-to-write super-block */
     wpp->curline = curline;
+    printf("###### current blk/line (initial) id: %d\n", wpp->curline->id);
     wpp->ch = 0;
     wpp->lun = 0;
     wpp->pg = 0;
@@ -196,6 +197,7 @@ static void ssd_advance_write_pointer(struct ssd *ssd)
                     abort();
                 }
                 wpp->blk = wpp->curline->id;
+                printf("###### current blk/line id: %d\n", wpp->curline->id);
                 check_addr(wpp->blk, spp->blks_per_pl);
                 /* make sure we are starting from page 0 in the super block */
                 ftl_assert(wpp->pg == 0);
@@ -739,6 +741,10 @@ static int do_gc(struct ssd *ssd, bool force)
               victim_line->ipc, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,
               ssd->lm.free_line_cnt);
 
+    printf("GC-ing line:%d,ipc=%d,victim=%d,full=%d,free=%d\n", ppa.g.blk,
+              victim_line->ipc, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,
+              ssd->lm.free_line_cnt);
+
     /* copy back valid data */
     for (ch = 0; ch < spp->nchs; ch++) {
         for (lun = 0; lun < spp->luns_per_ch; lun++) {
@@ -866,6 +872,7 @@ static void *ftl_thread(void *arg)
     uint64_t lat = 0;
     int rc;
     int i;
+    static bool force = true;
 
     while (!*(ssd->dataplane_started_ptr)) {
         usleep(100000);
@@ -911,7 +918,12 @@ static void *ftl_thread(void *arg)
 
             /* clean one line if needed (in the background) */
             if (should_gc(ssd)) {
-                do_gc(ssd, false);
+                if (force == true) {
+                    do_gc(ssd, true);
+                    force = false;
+                } else {
+                    do_gc(ssd, false);
+                }
             }
         }
     }
