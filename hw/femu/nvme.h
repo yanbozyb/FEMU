@@ -18,6 +18,8 @@
 #include "nand/nand.h"
 #include "timing-model/timing.h"
 
+#define CONFIG_NVSL_WALTZ
+
 #define NVME_ID_NS_LBADS(ns)                                                  \
     ((ns)->id_ns.lbaf[NVME_ID_NS_FLBAS_INDEX((ns)->id_ns.flbas)].lbads)
 
@@ -418,7 +420,17 @@ typedef struct NvmeRwCmd {
     uint8_t     flags;
     uint16_t    cid;
     uint32_t    nsid;
-    uint64_t    rsvd2;
+#ifdef CONFIG_NVSL_WALTZ
+	union {
+        __u64 rsvd2;
+        struct {
+            __u32 f_ino;
+            __u32 f_index;
+        };
+    };
+#else
+	__u64			rsvd2;
+#endif
     uint64_t    mptr;
     uint64_t    prp1;
     uint64_t    prp2;
