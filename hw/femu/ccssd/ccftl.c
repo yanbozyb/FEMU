@@ -1,4 +1,4 @@
-#include "ftl.h"
+#include "../inc/ftl.h"
 
 //#define FEMU_DEBUG_FTL
 
@@ -126,7 +126,7 @@ static void ssd_init_write_pointer(struct ssd *ssd)
 
     /* wpp->curline is always our next-to-write super-block */
     wpp->curline = curline;
-    printf("###### current blk/line (initial) id: %d\n", wpp->curline->id);
+    //printf("###### current blk/line (initial) id: %d\n", wpp->curline->id);
     wpp->ch = 0;
     wpp->lun = 0;
     wpp->pg = 0;
@@ -197,7 +197,7 @@ static void ssd_advance_write_pointer(struct ssd *ssd)
                     abort();
                 }
                 wpp->blk = wpp->curline->id;
-                printf("###### current blk/line id: %d\n", wpp->curline->id);
+                //printf("###### current blk/line id: %d\n", wpp->curline->id);
                 check_addr(wpp->blk, spp->blks_per_pl);
                 /* make sure we are starting from page 0 in the super block */
                 ftl_assert(wpp->pg == 0);
@@ -362,7 +362,7 @@ static void ssd_init_rmap(struct ssd *ssd)
     }
 }
 
-void ssd_init(FemuCtrl *n)
+void ccssd_ftl_init(FemuCtrl *n)
 {
     struct ssd *ssd = n->ssd;
     struct ssdparams *spp = &ssd->sp;

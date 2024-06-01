@@ -210,7 +210,8 @@ struct ssd {
     QemuThread ftl_thread;
 };
 
-void ssd_init(FemuCtrl *n);
+void bbssd_ftl_init(FemuCtrl *n);
+void ccssd_ftl_init(FemuCtrl *n);
 
 #ifdef FEMU_DEBUG_FTL
 #define ftl_debug(fmt, ...) \

@@ -1,29 +1,29 @@
 #include "../nvme.h"
 #include "../inc/ftl.h"
 
-static void bb_init_ctrl_str(FemuCtrl *n)
+static void cc_init_ctrl_str(FemuCtrl *n)
 {
-    static int fsid_vbb = 0;
-    const char *vbbssd_mn = "FEMU BlackBox-SSD Controller";
-    const char *vbbssd_sn = "vSSD";
+    static int fsid_vcc = 0;
+    const char *vccssd_mn = "FEMU CC-SSD Controller";
+    const char *vccssd_sn = "vSSD";
 
-    nvme_set_ctrl_name(n, vbbssd_mn, vbbssd_sn, &fsid_vbb);
+    nvme_set_ctrl_name(n, vccssd_mn, vccssd_sn, &fsid_vcc);
 }
 
-/* bb <=> black-box */
-static void bb_init(FemuCtrl *n, Error **errp)
+/* cc <=> cache-coherent */
+static void cc_init(FemuCtrl *n, Error **errp)
 {
     struct ssd *ssd = n->ssd = g_malloc0(sizeof(struct ssd));
 
-    bb_init_ctrl_str(n);
+    cc_init_ctrl_str(n);
 
     ssd->dataplane_started_ptr = &n->dataplane_started;
     ssd->ssdname = (char *)n->devname;
-    femu_debug("Starting FEMU in Blackbox-SSD mode ...\n");
-    bbssd_ftl_init(n);
+    femu_debug("Starting FEMU in CC-SSD mode ...\n");
+    ccssd_ftl_init(n);
 }
 
-static void bb_flip(FemuCtrl *n, NvmeCmd *cmd)
+static void cc_flip(FemuCtrl *n, NvmeCmd *cmd)
 {
     struct ssd *ssd = n->ssd;
     int64_t cdw10 = le64_to_cpu(cmd->cdw10);
@@ -70,44 +70,44 @@ static void bb_flip(FemuCtrl *n, NvmeCmd *cmd)
     }
 }
 
-static uint16_t bb_nvme_rw(FemuCtrl *n, NvmeNamespace *ns, NvmeCmd *cmd,
+static uint16_t cc_nvme_rw(FemuCtrl *n, NvmeNamespace *ns, NvmeCmd *cmd,
                            NvmeRequest *req)
 {
     return nvme_rw(n, ns, cmd, req);
 }
 
-static uint16_t bb_io_cmd(FemuCtrl *n, NvmeNamespace *ns, NvmeCmd *cmd,
+static uint16_t cc_io_cmd(FemuCtrl *n, NvmeNamespace *ns, NvmeCmd *cmd,
                           NvmeRequest *req)
 {
     switch (cmd->opcode) {
     case NVME_CMD_READ:
     case NVME_CMD_WRITE:
-        return bb_nvme_rw(n, ns, cmd, req);
+        return cc_nvme_rw(n, ns, cmd, req);
     default:
         return NVME_INVALID_OPCODE | NVME_DNR;
     }
 }
 
-static uint16_t bb_admin_cmd(FemuCtrl *n, NvmeCmd *cmd)
+static uint16_t cc_admin_cmd(FemuCtrl *n, NvmeCmd *cmd)
 {
     switch (cmd->opcode) {
     case NVME_ADM_CMD_FEMU_FLIP:
-        bb_flip(n, cmd);
+        cc_flip(n, cmd);
         return NVME_SUCCESS;
     default:
         return NVME_INVALID_OPCODE | NVME_DNR;
     }
 }
 
-int nvme_register_bbssd(FemuCtrl *n)
+int nvme_register_ccssd(FemuCtrl *n)
 {
     n->ext_ops = (FemuExtCtrlOps) {
         .state            = NULL,
-        .init             = bb_init,
+        .init             = cc_init,
         .exit             = NULL,
         .rw_check_req     = NULL,
-        .admin_cmd        = bb_admin_cmd,
-        .io_cmd           = bb_io_cmd,
+        .admin_cmd        = cc_admin_cmd,
+        .io_cmd           = cc_io_cmd,
         .get_log          = NULL,
     };
 
