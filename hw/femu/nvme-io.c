@@ -252,12 +252,6 @@ uint16_t nvme_rw(FemuCtrl *n, NvmeNamespace *ns, NvmeCmd *cmd, NvmeRequest *req)
     uint16_t err;
     int ret;
 
-#ifdef CONFIG_NVSL_WALTZ
-    uint32_t f_ino = le32_to_cpu(rw->f_ino);
-    uint32_t f_index = le32_to_cpu(rw->f_index);
-    femu_log("nvme rw, file inode: %u, index: %u, size: %lu\n", f_ino, f_index, data_size);
-#endif
-
     req->is_write = (rw->opcode == NVME_CMD_WRITE) ? 1 : 0;
 
     err = femu_nvme_rw_check_req(n, ns, cmd, req, slba, elba, nlb, ctrl,
@@ -276,6 +270,11 @@ uint16_t nvme_rw(FemuCtrl *n, NvmeNamespace *ns, NvmeCmd *cmd, NvmeRequest *req)
     req->slba = slba;
     req->status = NVME_SUCCESS;
     req->nlb = nlb;
+#ifdef CONFIG_NVSL_WALTZ
+    req->f_ino = le32_to_cpu(rw->f_ino);
+    req->f_index = le32_to_cpu(rw->f_index);
+    femu_debug("[NVSL] nvme rw, file inode: %u, index: %u, size: %lu\n", f_ino, f_index, data_size);
+#endif
 
     ret = backend_rw(n->mbe, &req->qsg, &data_offset, req->is_write);
     if (!ret) {

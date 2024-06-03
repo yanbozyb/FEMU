@@ -1005,6 +1005,11 @@ typedef struct NvmeRequest {
 
     /* position in the priority queue for delay emulation */
     size_t                  pos;
+
+#ifdef CONFIG_NVSL_WALTZ
+    uint32_t                f_ino;
+    uint32_t                f_index;
+#endif
 } NvmeRequest;
 
 typedef struct DMAOff {
